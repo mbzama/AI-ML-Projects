@@ -1,3 +1,8 @@
+#test data
+csv_output/
+
+.vscode/
+
 # Compiled class files
 *.class
 

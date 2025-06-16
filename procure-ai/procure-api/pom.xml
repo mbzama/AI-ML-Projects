@@ -9,9 +9,9 @@
         <relativePath/>
     </parent>
     <groupId>com.procure</groupId>
-    <artifactId>procure-api</artifactId>
+    <artifactId>procure-ai-api</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>procure-api</name>
+    <name>procure-ai-api</name>
     <description>Procurement Application with RFQ, Auctions, and Vendor Management</description>
     
     <properties>
@@ -44,12 +44,25 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
-        
-        <!-- Thymeleaf Security Integration -->
+          <!-- Thymeleaf Security Integration -->
         <dependency>
             <groupId>org.thymeleaf.extras</groupId>
             <artifactId>thymeleaf-extras-springsecurity6</artifactId>
         </dependency>
+        
+        <!-- OpenAPI/Swagger Documentation -->
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>2.3.0</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-api</artifactId>
+            <version>2.3.0</version>
+        </dependency>
+        
           <!-- Database -->
         <dependency>
             <groupId>org.postgresql</groupId>
