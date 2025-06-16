@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">    <title>Admin Dashboard - Procurement System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" th:href="@{/}">Procurement System - Admin</a>
+            <div class="navbar-nav ms-auto">
+                <button class="btn btn-outline-light" onclick="logout()">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <h1>Admin Dashboard</h1>
+        
+        <!-- Quick Actions -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card bg-light">
+                    <div class="card-body">                        <h5 class="card-title">Quick Actions</h5>                        <div class="btn-group" role="group">
+                            <a href="/create-auction" class="btn btn-success">
+                                <i class="fas fa-gavel me-1"></i>Create Auction
+                            </a>
+                            <button type="button" class="btn btn-primary" onclick="showAuctionListing()">
+                                <i class="fas fa-list me-1"></i>Auction Listing
+                            </button>
+                            <button type="button" class="btn btn-info" onclick="loadAuctions(); document.getElementById('auctionsList').scrollIntoView({ behavior: 'smooth' })">
+                                <i class="fas fa-gavel me-1"></i>Manage Auctions
+                            </button>
+                            <button type="button" class="btn btn-primary" onclick="scrollToEventForm()">
+                                <i class="fas fa-file-alt me-1"></i>Create RFQ
+                            </button>
+                            <button type="button" class="btn btn-warning" onclick="loadVendors()">
+                                <i class="fas fa-users me-1"></i>Manage Vendors
+                            </button>
+                            <button type="button" class="btn btn-secondary" onclick="loadEvents()">
+                                <i class="fas fa-list me-1"></i>View All Events
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Create New Event</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="createEventForm">
+                            <div class="mb-3">
+                                <label for="title" class="form-label">Title</label>
+                                <input type="text" class="form-control" id="title" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="description" class="form-label">Description</label>
+                                <textarea class="form-control" id="description" rows="3"></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label for="eventType" class="form-label">Event Type</label>
+                                <select class="form-select" id="eventType" required>
+                                    <option value="">Select Type</option>
+                                    <option value="RFQ">RFQ (Request for Quotation)</option>
+                                    <option value="AUCTION">Auction</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="endDate" class="form-label">End Date</label>
+                                <input type="datetime-local" class="form-control" id="endDate" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Create Event</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Vendor Management</h5>
+                    </div>
+                    <div class="card-body">
+                        <button class="btn btn-info" onclick="loadVendors()">Load Vendors</button>
+                        <div id="vendorsList" class="mt-3"></div>
+                    </div>
+                </div>
+            </div>        </div>
+        
+        <!-- Dedicated Auction Listing Section -->
+        <div class="row mt-4" id="auctionListingSection" style="display: none;">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0"><i class="fas fa-gavel me-2"></i>Comprehensive Auction Listing</h5>
+                            <div>
+                                <button class="btn btn-light btn-sm" onclick="refreshAuctionListing()">
+                                    <i class="fas fa-sync me-1"></i>Refresh
+                                </button>
+                                <button class="btn btn-light btn-sm" onclick="toggleAuctionFilters()">
+                                    <i class="fas fa-filter me-1"></i>Filters
+                                </button>
+                                <button class="btn btn-light btn-sm" onclick="hideAuctionListing()">
+                                    <i class="fas fa-times me-1"></i>Close
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Filters Section -->
+                    <div class="card-body border-bottom" id="auctionFilters" style="display: none;">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <label for="statusFilter" class="form-label">Status</label>
+                                <select class="form-select" id="statusFilter" onchange="filterAuctions()">
+                                    <option value="">All Statuses</option>
+                                    <option value="DRAFT">Draft</option>
+                                    <option value="PUBLISHED">Published</option>
+                                    <option value="IN_PROGRESS">In Progress</option>
+                                    <option value="COMPLETED">Completed</option>
+                                    <option value="AWARDED">Awarded</option>
+                                    <option value="CANCELLED">Cancelled</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="dateFilter" class="form-label">Date Range</label>
+                                <select class="form-select" id="dateFilter" onchange="filterAuctions()">
+                                    <option value="">All Dates</option>
+                                    <option value="today">Today</option>
+                                    <option value="week">This Week</option>
+                                    <option value="month">This Month</option>
+                                    <option value="expired">Expired</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="searchFilter" class="form-label">Search</label>
+                                <input type="text" class="form-control" id="searchFilter" placeholder="Search title or description..." onkeyup="filterAuctions()">
+                            </div>
+                            <div class="col-md-3">
+                                <label for="sortFilter" class="form-label">Sort By</label>
+                                <select class="form-select" id="sortFilter" onchange="sortAuctions()">
+                                    <option value="title">Title</option>
+                                    <option value="startDate">Start Date</option>
+                                    <option value="endDate">End Date</option>
+                                    <option value="status">Status</option>
+                                    <option value="created">Created Date</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card-body">
+                        <!-- Statistics Row -->
+                        <div class="row mb-4" id="auctionStats">
+                            <div class="col-md-2">
+                                <div class="text-center p-3 bg-light rounded">
+                                    <h4 class="text-primary mb-0" id="totalAuctions">0</h4>
+                                    <small class="text-muted">Total</small>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="text-center p-3 bg-light rounded">
+                                    <h4 class="text-secondary mb-0" id="draftAuctions">0</h4>
+                                    <small class="text-muted">Draft</small>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="text-center p-3 bg-light rounded">
+                                    <h4 class="text-success mb-0" id="publishedAuctions">0</h4>
+                                    <small class="text-muted">Published</small>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="text-center p-3 bg-light rounded">
+                                    <h4 class="text-warning mb-0" id="activeAuctions">0</h4>
+                                    <small class="text-muted">Active</small>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="text-center p-3 bg-light rounded">
+                                    <h4 class="text-info mb-0" id="completedAuctions">0</h4>
+                                    <small class="text-muted">Completed</small>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="text-center p-3 bg-light rounded">
+                                    <h4 class="text-primary mb-0" id="awardedAuctions">0</h4>
+                                    <small class="text-muted">Awarded</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Auction Listing Table -->
+                        <div id="auctionListingContainer">
+                            <div class="text-center text-muted py-4">
+                                <i class="fas fa-gavel fa-3x mb-3"></i>
+                                <p>Click "Refresh" to load auction listing</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5><i class="fas fa-gavel me-2"></i>Auction Management</h5>
+                            <div>
+                                <button class="btn btn-primary btn-sm" onclick="loadAuctions()">
+                                    <i class="fas fa-sync me-1"></i>Refresh
+                                </button>
+                                <a href="/api/create-auction" class="btn btn-success btn-sm">
+                                    <i class="fas fa-plus me-1"></i>New Auction
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div id="auctionsList" class="mt-3">
+                            <div class="text-center text-muted">
+                                <i class="fas fa-gavel fa-3x mb-3"></i>
+                                <p>Click "Refresh" to load auctions</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>All Events Management</h5>
+                    </div>
+                    <div class="card-body">
+                        <button class="btn btn-info" onclick="loadEvents()">Load Events</button>
+                        <div id="eventsList" class="mt-3"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function getAuthHeader() {
+            const token = localStorage.getItem('token');
+            return {
+                'Authorization': 'Bearer ' + token,
+                'Content-Type': 'application/json'
+            };
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '/login';
+        }
+
+        function scrollToEventForm() {
+            document.getElementById('createEventForm').scrollIntoView({ 
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }
+
+        // Check if user is logged in and has admin role
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        if (!user.roles || !user.roles.includes('ROLE_CREATOR')) {
+            alert('Access denied. Admin role required.');
+            window.location.href = '/login';
+        }
+
+        document.getElementById('createEventForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const eventData = {
+                title: document.getElementById('title').value,
+                description: document.getElementById('description').value,
+                eventType: document.getElementById('eventType').value,
+                endDate: document.getElementById('endDate').value
+            };
+            
+            try {
+                const response = await fetch('/api/admin/events', {
+                    method: 'POST',
+                    headers: getAuthHeader(),
+                    body: JSON.stringify(eventData)
+                });
+                
+                if (response.ok) {
+                    alert('Event created successfully!');
+                    document.getElementById('createEventForm').reset();
+                    loadEvents();
+                } else {
+                    alert('Failed to create event.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred while creating the event.');
+            }
+        });
+
+        async function loadVendors() {
+            try {
+                const response = await fetch('/api/admin/vendors', {
+                    headers: getAuthHeader()
+                });
+                
+                if (response.ok) {
+                    const vendors = await response.json();
+                    displayVendors(vendors);
+                }
+            } catch (error) {
+                console.error('Error loading vendors:', error);
+            }
+        }
+
+        function displayVendors(vendors) {
+            const vendorsList = document.getElementById('vendorsList');
+            if (vendors.length === 0) {
+                vendorsList.innerHTML = '<p>No vendors found.</p>';
+                return;
+            }
+            
+            let html = '<div class="list-group">';
+            vendors.forEach(vendor => {
+                html += `
+                    <div class="list-group-item">
+                        <h6>${vendor.companyName}</h6>
+                        <p class="mb-1">${vendor.user.email}</p>
+                        <small>Status: ${vendor.isApproved ? 'Approved' : 'Pending'}</small>
+                        ${!vendor.isApproved ? 
+                            `<button class="btn btn-sm btn-success ms-2" onclick="approveVendor(${vendor.id})">Approve</button>` : 
+                            ''}
+                    </div>
+                `;
+            });
+            html += '</div>';
+            vendorsList.innerHTML = html;
+        }
+
+        async function approveVendor(vendorId) {
+            try {
+                const response = await fetch(`/api/admin/vendors/${vendorId}/approve`, {
+                    method: 'POST',
+                    headers: getAuthHeader()
+                });
+                
+                if (response.ok) {
+                    alert('Vendor approved successfully!');
+                    loadVendors();
+                } else {
+                    alert('Failed to approve vendor.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        async function loadEvents() {
+            try {
+                const response = await fetch('/api/admin/events', {
+                    headers: getAuthHeader()
+                });
+                
+                if (response.ok) {
+                    const events = await response.json();
+                    displayEvents(events);
+                }
+            } catch (error) {
+                console.error('Error loading events:', error);
+            }
+        }
+
+        async function loadAuctions() {
+            try {
+                const response = await fetch('/api/admin/auctions', {
+                    headers: getAuthHeader()
+                });
+                
+                if (response.ok) {
+                    const auctions = await response.json();
+                    displayAuctions(auctions);
+                } else {
+                    document.getElementById('auctionsList').innerHTML = '<div class="alert alert-warning">Failed to load auctions</div>';
+                }
+            } catch (error) {
+                console.error('Error loading auctions:', error);
+                document.getElementById('auctionsList').innerHTML = '<div class="alert alert-danger">Error loading auctions</div>';
+            }
+        }
+
+        function displayAuctions(auctions) {
+            const auctionsList = document.getElementById('auctionsList');
+            if (auctions.length === 0) {
+                auctionsList.innerHTML = `
+                    <div class="text-center text-muted">
+                        <i class="fas fa-inbox fa-3x mb-3"></i>
+                        <p>No auctions found. <a href="/api/create-auction">Create your first auction</a></p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = `
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th><i class="fas fa-tag me-1"></i>Title</th>
+                                <th><i class="fas fa-info-circle me-1"></i>Status</th>
+                                <th><i class="fas fa-calendar me-1"></i>Start Date</th>
+                                <th><i class="fas fa-calendar-times me-1"></i>End Date</th>
+                                <th><i class="fas fa-dollar-sign me-1"></i>Min Bid Inc.</th>
+                                <th><i class="fas fa-list me-1"></i>Items</th>
+                                <th><i class="fas fa-cogs me-1"></i>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+            
+            auctions.forEach(auction => {
+                const statusColor = auction.status === 'DRAFT' ? 'secondary' : 
+                                  auction.status === 'PUBLISHED' ? 'success' : 
+                                  auction.status === 'IN_PROGRESS' ? 'warning' :
+                                  auction.status === 'COMPLETED' ? 'info' : 
+                                  auction.status === 'AWARDED' ? 'primary' : 'danger';
+                
+                const startDate = auction.startDate ? new Date(auction.startDate).toLocaleString() : 'Not set';
+                const endDate = auction.endDate ? new Date(auction.endDate).toLocaleString() : 'Not set';
+                const itemCount = auction.lineItems ? auction.lineItems.length : 0;
+                
+                html += `
+                    <tr>
+                        <td>
+                            <strong>${auction.title || 'Untitled'}</strong>
+                            ${auction.description ? '<br><small class="text-muted">' + (auction.description.length > 50 ? auction.description.substring(0, 50) + '...' : auction.description) + '</small>' : ''}
+                        </td>
+                        <td>
+                            <span class="badge bg-${statusColor}">${auction.status}</span>
+                        </td>
+                        <td>${startDate}</td>
+                        <td>${endDate}</td>
+                        <td>${auction.currency || 'USD'} ${auction.minimumBidIncrement || '0.00'}</td>
+                        <td>
+                            <span class="badge bg-info">${itemCount} items</span>
+                            ${itemCount > 0 ? '<br><button class="btn btn-sm btn-outline-primary mt-1" onclick="viewLineItems(' + auction.id + ')">View Items</button>' : ''}
+                        </td>
+                        <td>
+                            <div class="btn-group-vertical btn-group-sm" role="group">
+                                ${auction.status === 'DRAFT' ? 
+                                    '<button class="btn btn-success btn-sm" onclick="publishAuction(' + auction.id + ')"><i class="fas fa-bullhorn me-1"></i>Publish</button>' : 
+                                    ''}
+                                <button class="btn btn-info btn-sm" onclick="viewAuction(${auction.id})"><i class="fas fa-eye me-1"></i>View</button>
+                                ${auction.status === 'DRAFT' ? 
+                                    '<button class="btn btn-warning btn-sm" onclick="editAuction(' + auction.id + ')"><i class="fas fa-edit me-1"></i>Edit</button>' : 
+                                    ''}
+                                ${auction.status === 'PUBLISHED' && new Date(auction.endDate) > new Date() ? 
+                                    '<button class="btn btn-primary btn-sm" onclick="viewBids(' + auction.id + ')"><i class="fas fa-gavel me-1"></i>View Bids</button>' : 
+                                    ''}
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            html += '</tbody></table></div>';
+            auctionsList.innerHTML = html;
+        }
+
+        async function publishAuction(auctionId) {
+            if (!confirm('Are you sure you want to publish this auction? Once published, it cannot be edited.')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/admin/auctions/${auctionId}/publish`, {
+                    method: 'POST',
+                    headers: getAuthHeader()
+                });
+                
+                if (response.ok) {
+                    alert('Auction published successfully!');
+                    loadAuctions(); // Refresh the list
+                } else {
+                    const errorText = await response.text();
+                    alert('Failed to publish auction: ' + errorText);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred while publishing the auction.');
+            }
+        }
+
+        function viewAuction(auctionId) {
+            // Open auction details in a modal or new window
+            window.open(`/api/admin/auctions/${auctionId}`, '_blank');
+        }
+
+        function editAuction(auctionId) {
+            // Redirect to edit page (could be the same create page with edit mode)
+            window.location.href = `/api/create-auction?edit=${auctionId}`;
+        }
+
+        async function viewLineItems(auctionId) {
+            try {
+                const response = await fetch(`/api/admin/events/${auctionId}/line-items`, {
+                    headers: getAuthHeader()
+                });
+                
+                if (response.ok) {
+                    const lineItems = await response.json();
+                    displayLineItemsModal(lineItems);
+                } else {
+                    alert('Failed to load line items');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error loading line items');
+            }
+        }
+
+        function displayLineItemsModal(lineItems) {
+            let modalHtml = `
+                <div class="modal fade" id="lineItemsModal" tabindex="-1">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title"><i class="fas fa-list me-2"></i>Auction Line Items</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+            `;
+            
+            if (lineItems.length === 0) {
+                modalHtml += '<p class="text-muted">No line items found.</p>';
+            } else {
+                modalHtml += `
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Item #</th>
+                                    <th>Description</th>
+                                    <th>Quantity</th>
+                                    <th>Unit</th>
+                                    <th>Est. Price</th>
+                                    <th>Specifications</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+                
+                lineItems.forEach(item => {
+                    modalHtml += `
+                        <tr>
+                            <td>${item.itemNumber || 'N/A'}</td>
+                            <td>${item.description || 'N/A'}</td>
+                            <td>${item.quantity || 0}</td>
+                            <td>${item.unit || 'units'}</td>
+                            <td>$${item.estimatedPrice || '0.00'}</td>
+                            <td>${item.specifications || 'N/A'}</td>
+                        </tr>
+                    `;
+                });
+                
+                modalHtml += '</tbody></table></div>';
+            }
+            
+            modalHtml += `
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Remove existing modal if any
+            const existingModal = document.getElementById('lineItemsModal');
+            if (existingModal) {
+                existingModal.remove();
+            }
+            
+            // Add modal to page
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+            
+            // Show modal
+            const modal = new bootstrap.Modal(document.getElementById('lineItemsModal'));
+            modal.show();
+        }
+
+        function viewBids(auctionId) {
+            // This would open a bids management page
+            window.location.href = `/api/admin/auctions/${auctionId}/bids`;
+        }        // Load initial data
+        loadVendors();
+        loadEvents();
+        loadAuctions();
+        
+        // Global variables for auction listing
+        let allAuctions = [];
+        let filteredAuctions = [];
+        
+        // Show/Hide Auction Listing Section
+        function showAuctionListing() {
+            document.getElementById('auctionListingSection').style.display = 'block';
+            document.getElementById('auctionListingSection').scrollIntoView({ behavior: 'smooth' });
+            refreshAuctionListing();
+        }
+        
+        function hideAuctionListing() {
+            document.getElementById('auctionListingSection').style.display = 'none';
+        }
+        
+        function toggleAuctionFilters() {
+            const filters = document.getElementById('auctionFilters');
+            filters.style.display = filters.style.display === 'none' ? 'block' : 'none';
+        }
+        
+        // Refresh Auction Listing
+        async function refreshAuctionListing() {
+            try {
+                const response = await fetch('/api/admin/auctions', {
+                    headers: getAuthHeader()
+                });
+                
+                if (response.ok) {
+                    allAuctions = await response.json();
+                    filteredAuctions = [...allAuctions];
+                    updateAuctionStats();
+                    displayAuctionListing();
+                } else {
+                    document.getElementById('auctionListingContainer').innerHTML = 
+                        '<div class="alert alert-warning">Failed to load auction listing</div>';
+                }
+            } catch (error) {
+                console.error('Error loading auction listing:', error);
+                document.getElementById('auctionListingContainer').innerHTML = 
+                    '<div class="alert alert-danger">Error loading auction listing</div>';
+            }
+        }
+        
+        // Update Statistics
+        function updateAuctionStats() {
+            const stats = {
+                total: allAuctions.length,
+                draft: allAuctions.filter(a => a.status === 'DRAFT').length,
+                published: allAuctions.filter(a => a.status === 'PUBLISHED').length,
+                active: allAuctions.filter(a => a.status === 'IN_PROGRESS').length,
+                completed: allAuctions.filter(a => a.status === 'COMPLETED').length,
+                awarded: allAuctions.filter(a => a.status === 'AWARDED').length
+            };
+            
+            document.getElementById('totalAuctions').textContent = stats.total;
+            document.getElementById('draftAuctions').textContent = stats.draft;
+            document.getElementById('publishedAuctions').textContent = stats.published;
+            document.getElementById('activeAuctions').textContent = stats.active;
+            document.getElementById('completedAuctions').textContent = stats.completed;
+            document.getElementById('awardedAuctions').textContent = stats.awarded;
+        }
+        
+        // Display Auction Listing
+        function displayAuctionListing() {
+            const container = document.getElementById('auctionListingContainer');
+            
+            if (filteredAuctions.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-inbox fa-3x mb-3"></i>
+                        <p>No auctions match the current filters</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = `
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-dark">
+                            <tr>
+                                <th><i class="fas fa-hashtag me-1"></i>ID</th>
+                                <th><i class="fas fa-tag me-1"></i>Title</th>
+                                <th><i class="fas fa-info-circle me-1"></i>Status</th>
+                                <th><i class="fas fa-calendar me-1"></i>Start Date</th>
+                                <th><i class="fas fa-calendar-times me-1"></i>End Date</th>
+                                <th><i class="fas fa-dollar-sign me-1"></i>Min Bid Inc.</th>
+                                <th><i class="fas fa-list me-1"></i>Items</th>
+                                <th><i class="fas fa-user me-1"></i>Created By</th>
+                                <th><i class="fas fa-clock me-1"></i>Duration</th>
+                                <th><i class="fas fa-cogs me-1"></i>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+            
+            filteredAuctions.forEach(auction => {
+                const statusColor = getStatusColor(auction.status);
+                const startDate = auction.startDate ? new Date(auction.startDate).toLocaleString() : 'Not set';
+                const endDate = auction.endDate ? new Date(auction.endDate).toLocaleString() : 'Not set';
+                const itemCount = auction.lineItems ? auction.lineItems.length : 0;
+                const duration = calculateDuration(auction.startDate, auction.endDate);
+                const creator = auction.createdBy ? auction.createdBy.email : 'Unknown';
+                
+                html += `
+                    <tr>
+                        <td><strong>#${auction.id}</strong></td>
+                        <td>
+                            <div>
+                                <strong>${auction.title || 'Untitled'}</strong>
+                                ${auction.description ? '<br><small class="text-muted">' + 
+                                    (auction.description.length > 40 ? auction.description.substring(0, 40) + '...' : auction.description) + 
+                                    '</small>' : ''}
+                            </div>
+                        </td>
+                        <td><span class="badge bg-${statusColor}">${auction.status}</span></td>
+                        <td><small>${startDate}</small></td>
+                        <td><small>${endDate}</small></td>
+                        <td>${auction.currency || 'USD'} ${auction.minimumBidIncrement || '0.00'}</td>
+                        <td>
+                            <span class="badge bg-info">${itemCount}</span>
+                            ${itemCount > 0 ? '<br><button class="btn btn-sm btn-outline-primary mt-1" onclick="viewAuctionLineItems(' + auction.id + ')">View</button>' : ''}
+                        </td>
+                        <td><small>${creator}</small></td>
+                        <td><small class="text-muted">${duration}</small></td>
+                        <td>
+                            <div class="btn-group-vertical btn-group-sm" role="group">
+                                <button class="btn btn-info btn-sm" onclick="viewAuctionDetails(${auction.id})" title="View Details">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                ${auction.status === 'DRAFT' ? 
+                                    '<button class="btn btn-warning btn-sm" onclick="editAuctionFromListing(' + auction.id + ')" title="Edit"><i class="fas fa-edit"></i></button>' : 
+                                    ''}
+                                ${auction.status === 'DRAFT' ? 
+                                    '<button class="btn btn-success btn-sm" onclick="publishAuctionFromListing(' + auction.id + ')" title="Publish"><i class="fas fa-bullhorn"></i></button>' : 
+                                    ''}
+                                ${auction.status === 'PUBLISHED' ? 
+                                    '<button class="btn btn-primary btn-sm" onclick="viewAuctionBids(' + auction.id + ')" title="View Bids"><i class="fas fa-gavel"></i></button>' : 
+                                    ''}
+                                <button class="btn btn-secondary btn-sm" onclick="duplicateAuction(' + auction.id + ')" title="Duplicate">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            html += '</tbody></table></div>';
+            container.innerHTML = html;
+        }
+        
+        // Helper Functions
+        function getStatusColor(status) {
+            switch(status) {
+                case 'DRAFT': return 'secondary';
+                case 'PUBLISHED': return 'success';
+                case 'IN_PROGRESS': return 'warning';
+                case 'COMPLETED': return 'info';
+                case 'AWARDED': return 'primary';
+                case 'CANCELLED': return 'danger';
+                default: return 'dark';
+            }
+        }
+        
+        function calculateDuration(startDate, endDate) {
+            if (!startDate || !endDate) return 'N/A';
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            const diffMs = end - start;
+            const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+            const diffHours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            
+            if (diffDays > 0) {
+                return `${diffDays}d ${diffHours}h`;
+            } else {
+                return `${diffHours}h`;
+            }
+        }
+        
+        // Filter and Sort Functions
+        function filterAuctions() {
+            const statusFilter = document.getElementById('statusFilter').value;
+            const dateFilter = document.getElementById('dateFilter').value;
+            const searchFilter = document.getElementById('searchFilter').value.toLowerCase();
+            
+            filteredAuctions = allAuctions.filter(auction => {
+                // Status filter
+                if (statusFilter && auction.status !== statusFilter) return false;
+                
+                // Search filter
+                if (searchFilter) {
+                    const searchText = (auction.title || '').toLowerCase() + ' ' + (auction.description || '').toLowerCase();
+                    if (!searchText.includes(searchFilter)) return false;
+                }
+                
+                // Date filter
+                if (dateFilter) {
+                    const now = new Date();
+                    const auctionDate = auction.endDate ? new Date(auction.endDate) : null;
+                    
+                    switch(dateFilter) {
+                        case 'today':
+                            if (!auctionDate || auctionDate.toDateString() !== now.toDateString()) return false;
+                            break;
+                        case 'week':
+                            const weekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+                            if (!auctionDate || auctionDate > weekFromNow) return false;
+                            break;
+                        case 'month':
+                            const monthFromNow = new Date(now.getFullYear(), now.getMonth() + 1, now.getDate());
+                            if (!auctionDate || auctionDate > monthFromNow) return false;
+                            break;
+                        case 'expired':
+                            if (!auctionDate || auctionDate > now) return false;
+                            break;
+                    }
+                }
+                
+                return true;
+            });
+            
+            sortAuctions();
+        }
+        
+        function sortAuctions() {
+            const sortBy = document.getElementById('sortFilter').value;
+            
+            filteredAuctions.sort((a, b) => {
+                switch(sortBy) {
+                    case 'title':
+                        return (a.title || '').localeCompare(b.title || '');
+                    case 'startDate':
+                        return new Date(a.startDate || 0) - new Date(b.startDate || 0);
+                    case 'endDate':
+                        return new Date(a.endDate || 0) - new Date(b.endDate || 0);
+                    case 'status':
+                        return (a.status || '').localeCompare(b.status || '');
+                    case 'created':
+                        return new Date(a.createdDate || 0) - new Date(b.createdDate || 0);
+                    default:
+                        return 0;
+                }
+            });
+            
+            displayAuctionListing();
+        }
+        
+        // Action Functions for Auction Listing
+        function viewAuctionDetails(auctionId) {
+            window.open(`/api/admin/auctions/${auctionId}`, '_blank');
+        }
+        
+        function editAuctionFromListing(auctionId) {
+            window.location.href = `/api/create-auction?edit=${auctionId}`;
+        }
+        
+        async function publishAuctionFromListing(auctionId) {
+            if (!confirm('Are you sure you want to publish this auction? Once published, it cannot be edited.')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/admin/auctions/${auctionId}/publish`, {
+                    method: 'POST',
+                    headers: getAuthHeader()
+                });
+                
+                if (response.ok) {
+                    alert('Auction published successfully!');
+                    refreshAuctionListing();
+                } else {
+                    const errorText = await response.text();
+                    alert('Failed to publish auction: ' + errorText);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred while publishing the auction.');
+            }
+        }
+        
+        function viewAuctionBids(auctionId) {
+            window.location.href = `/api/admin/auctions/${auctionId}/bids`;
+        }
+        
+        function viewAuctionLineItems(auctionId) {
+            viewLineItems(auctionId); // Use existing function
+        }
+        
+        async function duplicateAuction(auctionId) {
+            if (!confirm('Create a copy of this auction?')) {
+                return;
+            }
+            
+            try {
+                // Fetch the auction details
+                const response = await fetch(`/api/admin/auctions/${auctionId}`, {
+                    headers: getAuthHeader()
+                });
+                
+                if (response.ok) {
+                    const auction = await response.json();
+                    
+                    // Create a duplicate with modified title
+                    const duplicateData = {
+                        title: `Copy of ${auction.title || 'Untitled'}`,
+                        description: auction.description,
+                        startDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().slice(0, 16), // Tomorrow
+                        endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16), // Next week
+                        minimumBidIncrement: auction.minimumBidIncrement,
+                        currency: auction.currency,
+                        termsAndConditions: auction.termsAndConditions
+                    };
+                    
+                    const createResponse = await fetch('/api/admin/auctions', {
+                        method: 'POST',
+                        headers: getAuthHeader(),
+                        body: JSON.stringify(duplicateData)
+                    });
+                    
+                    if (createResponse.ok) {
+                        alert('Auction duplicated successfully!');
+                        refreshAuctionListing();
+                    } else {
+                        alert('Failed to duplicate auction');
+                    }
+                } else {
+                    alert('Failed to fetch auction details');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred while duplicating the auction.');
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Auction - Procurement System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" th:href="@{/}">
+                <i class="fas fa-gavel me-2"></i>Procurement System - Create Auction
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" th:href="@{/admin}">
+                    <i class="fas fa-tachometer-alt me-1"></i>Admin Dashboard
+                </a>
+                <button class="btn btn-outline-light ms-2" onclick="logout()">
+                    <i class="fas fa-sign-out-alt me-1"></i>Logout
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h1><i class="fas fa-plus-circle me-2"></i>Create New Auction</h1>
+                    <button class="btn btn-secondary" onclick="history.back()">
+                        <i class="fas fa-arrow-left me-1"></i>Back
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Progress Steps -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="progress" style="height: 3px;">
+                    <div class="progress-bar" role="progressbar" style="width: 33%;" aria-valuenow="33" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+                <div class="d-flex justify-content-between mt-2">
+                    <span class="badge bg-primary">1. Basic Info</span>
+                    <span class="badge bg-secondary">2. Auction Settings</span>
+                    <span class="badge bg-secondary">3. Line Items</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alert for Success/Error Messages -->
+        <div id="alertContainer"></div>
+
+        <!-- Auction Creation Form -->
+        <form id="auctionForm">
+            <!-- Step 1: Basic Information -->
+            <div class="step" id="step1">
+                <div class="row">
+                    <div class="col-lg-8">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5><i class="fas fa-info-circle me-2"></i>Basic Auction Information</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="title" class="form-label">Auction Title *</label>
+                                            <input type="text" class="form-control" id="title" required 
+                                                   placeholder="e.g., IT Equipment Auction 2024">
+                                            <div class="form-text">Enter a descriptive title for your auction</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="category" class="form-label">Category</label>
+                                            <select class="form-select" id="category">
+                                                <option value="">Select Category</option>
+                                                <option value="IT_EQUIPMENT">IT Equipment</option>
+                                                <option value="OFFICE_SUPPLIES">Office Supplies</option>
+                                                <option value="SERVICES">Services</option>
+                                                <option value="CONSTRUCTION">Construction</option>
+                                                <option value="VEHICLES">Vehicles</option>
+                                                <option value="OTHER">Other</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="description" class="form-label">Description</label>
+                                    <textarea class="form-control" id="description" rows="4" 
+                                              placeholder="Provide detailed information about the auction..."></textarea>
+                                    <div class="form-text">Describe what is being auctioned and any important details</div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="startDate" class="form-label">Start Date & Time *</label>
+                                            <input type="datetime-local" class="form-control" id="startDate" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="endDate" class="form-label">End Date & Time *</label>
+                                            <input type="datetime-local" class="form-control" id="endDate" required>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-lg-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6><i class="fas fa-lightbulb me-2"></i>Quick Tips</h6>
+                            </div>
+                            <div class="card-body">
+                                <ul class="list-unstyled">
+                                    <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Use clear, descriptive titles</li>
+                                    <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Provide detailed descriptions</li>
+                                    <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Set realistic timeframes</li>
+                                    <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Include all necessary specifications</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2: Auction Settings -->
+            <div class="step d-none" id="step2">
+                <div class="row">
+                    <div class="col-lg-8">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5><i class="fas fa-cogs me-2"></i>Auction Settings</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="auctionType" class="form-label">Auction Type *</label>
+                                            <select class="form-select" id="auctionType" required>
+                                                <option value="">Select Type</option>
+                                                <option value="ENGLISH">English Auction (Ascending)</option>
+                                                <option value="DUTCH">Dutch Auction (Descending)</option>
+                                                <option value="SEALED_BID">Sealed Bid Auction</option>
+                                            </select>
+                                            <div class="form-text">English auctions start low and increase, Dutch auctions start high and decrease</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="currency" class="form-label">Currency</label>
+                                            <select class="form-select" id="currency">
+                                                <option value="USD">USD - US Dollar</option>
+                                                <option value="EUR">EUR - Euro</option>
+                                                <option value="GBP">GBP - British Pound</option>
+                                                <option value="INR">INR - Indian Rupee</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="minimumBidIncrement" class="form-label">Minimum Bid Increment</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text">$</span>
+                                                <input type="number" class="form-control" id="minimumBidIncrement" 
+                                                       value="1.00" step="0.01" min="0.01">
+                                            </div>
+                                            <div class="form-text">Minimum amount by which each bid must increase</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="reservePrice" class="form-label">Reserve Price (Optional)</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text">$</span>
+                                                <input type="number" class="form-control" id="reservePrice" 
+                                                       step="0.01" min="0" placeholder="0.00">
+                                            </div>
+                                            <div class="form-text">Minimum price you're willing to accept</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="autoExtend">
+                                        <label class="form-check-label" for="autoExtend">
+                                            <strong>Auto-extend auction</strong>
+                                        </label>
+                                        <div class="form-text">Automatically extend auction time if bids are placed in the final minutes</div>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="termsAndConditions" class="form-label">Terms and Conditions</label>
+                                    <textarea class="form-control" id="termsAndConditions" rows="4" 
+                                              placeholder="Enter specific terms, payment conditions, delivery requirements..."></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-lg-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6><i class="fas fa-info-circle me-2"></i>Auction Types</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <h6 class="text-primary">English Auction</h6>
+                                    <p class="small">Bidders compete by raising bids until no one is willing to bid higher.</p>
+                                </div>
+                                <div class="mb-3">
+                                    <h6 class="text-success">Dutch Auction</h6>
+                                    <p class="small">Price starts high and decreases until a bidder accepts the current price.</p>
+                                </div>
+                                <div class="mb-3">
+                                    <h6 class="text-warning">Sealed Bid</h6>
+                                    <p class="small">Bidders submit sealed bids, highest bid wins.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3: Line Items -->
+            <div class="step d-none" id="step3">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5><i class="fas fa-list me-2"></i>Auction Line Items</h5>
+                            <button type="button" class="btn btn-success btn-sm" onclick="addLineItem()">
+                                <i class="fas fa-plus me-1"></i>Add Item
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div id="lineItemsContainer">
+                            <!-- Line items will be added here dynamically -->
+                        </div>
+                        
+                        <div class="text-center mt-3" id="noItemsMessage">
+                            <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">No items added yet. Click "Add Item" to start adding auction items.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation Buttons -->
+            <div class="d-flex justify-content-between mt-4">
+                <button type="button" class="btn btn-secondary" id="prevBtn" onclick="changeStep(-1)" style="display: none;">
+                    <i class="fas fa-chevron-left me-1"></i>Previous
+                </button>
+                <div class="ms-auto">
+                    <button type="button" class="btn btn-primary" id="nextBtn" onclick="changeStep(1)">
+                        Next <i class="fas fa-chevron-right ms-1"></i>
+                    </button>
+                    <button type="submit" class="btn btn-success" id="submitBtn" style="display: none;">
+                        <i class="fas fa-rocket me-1"></i>Create Auction
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let currentStep = 1;
+        let lineItemCounter = 0;
+
+        function getAuthHeader() {
+            const token = localStorage.getItem('token');
+            return {
+                'Authorization': 'Bearer ' + token,
+                'Content-Type': 'application/json'
+            };
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '/api/login';
+        }
+
+        // Check if user is logged in and has admin role
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        if (!user.roles || !user.roles.includes('ROLE_CREATOR')) {
+            alert('Access denied. Admin role required.');
+            window.location.href = '/api/login';
+        }
+
+        function showAlert(message, type = 'success') {
+            const alertContainer = document.getElementById('alertContainer');
+            const alertHtml = `
+                <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-triangle'} me-2"></i>
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+            alertContainer.innerHTML = alertHtml;
+            
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                const alert = alertContainer.querySelector('.alert');
+                if (alert) {
+                    alert.remove();
+                }
+            }, 5000);
+        }
+
+        function changeStep(direction) {
+            if (direction === 1 && !validateCurrentStep()) {
+                return;
+            }
+
+            // Hide current step
+            document.getElementById(`step${currentStep}`).classList.add('d-none');
+            
+            // Update step counter
+            currentStep += direction;
+            
+            // Show new step
+            document.getElementById(`step${currentStep}`).classList.remove('d-none');
+            
+            // Update progress bar
+            const progressPercent = (currentStep / 3) * 100;
+            document.querySelector('.progress-bar').style.width = progressPercent + '%';
+            
+            // Update step badges
+            document.querySelectorAll('.badge').forEach((badge, index) => {
+                if (index + 1 <= currentStep) {
+                    badge.classList.remove('bg-secondary');
+                    badge.classList.add('bg-primary');
+                } else {
+                    badge.classList.remove('bg-primary');
+                    badge.classList.add('bg-secondary');
+                }
+            });
+            
+            // Update navigation buttons
+            document.getElementById('prevBtn').style.display = currentStep === 1 ? 'none' : 'block';
+            document.getElementById('nextBtn').style.display = currentStep === 3 ? 'none' : 'block';
+            document.getElementById('submitBtn').style.display = currentStep === 3 ? 'block' : 'none';
+        }
+
+        function validateCurrentStep() {
+            switch (currentStep) {
+                case 1:
+                    const title = document.getElementById('title').value.trim();
+                    const startDate = document.getElementById('startDate').value;
+                    const endDate = document.getElementById('endDate').value;
+                    
+                    if (!title) {
+                        showAlert('Please enter an auction title.', 'danger');
+                        return false;
+                    }
+                    
+                    if (!startDate || !endDate) {
+                        showAlert('Please select both start and end dates.', 'danger');
+                        return false;
+                    }
+                    
+                    if (new Date(startDate) >= new Date(endDate)) {
+                        showAlert('End date must be after start date.', 'danger');
+                        return false;
+                    }
+                    
+                    if (new Date(startDate) <= new Date()) {
+                        showAlert('Start date must be in the future.', 'danger');
+                        return false;
+                    }
+                    
+                    break;
+                    
+                case 2:
+                    const auctionType = document.getElementById('auctionType').value;
+                    
+                    if (!auctionType) {
+                        showAlert('Please select an auction type.', 'danger');
+                        return false;
+                    }
+                    
+                    break;
+            }
+            
+            return true;
+        }
+
+        function addLineItem() {
+            lineItemCounter++;
+            const container = document.getElementById('lineItemsContainer');
+            const noItemsMessage = document.getElementById('noItemsMessage');
+            
+            noItemsMessage.style.display = 'none';
+            
+            const lineItemHtml = `
+                <div class="card mb-3" id="lineItem${lineItemCounter}">
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0">Item #${lineItemCounter}</h6>
+                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeLineItem(${lineItemCounter})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Item Number/SKU</label>
+                                    <input type="text" class="form-control" name="itemNumber${lineItemCounter}" 
+                                           placeholder="e.g., ITEM001" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Item Name *</label>
+                                    <input type="text" class="form-control" name="itemName${lineItemCounter}" 
+                                           placeholder="e.g., Laptop Computer" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Description</label>
+                            <textarea class="form-control" name="itemDescription${lineItemCounter}" rows="2" 
+                                      placeholder="Detailed description of the item..."></textarea>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label class="form-label">Quantity *</label>
+                                    <input type="number" class="form-control" name="quantity${lineItemCounter}" 
+                                           min="1" value="1" required>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label class="form-label">Unit</label>
+                                    <select class="form-select" name="unit${lineItemCounter}">
+                                        <option value="pieces">Pieces</option>
+                                        <option value="units">Units</option>
+                                        <option value="sets">Sets</option>
+                                        <option value="kg">Kilograms</option>
+                                        <option value="meters">Meters</option>
+                                        <option value="hours">Hours</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label class="form-label">Starting Price</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input type="number" class="form-control" name="startingPrice${lineItemCounter}" 
+                                               step="0.01" min="0" placeholder="0.00">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label class="form-label">Estimated Value</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input type="number" class="form-control" name="estimatedPrice${lineItemCounter}" 
+                                               step="0.01" min="0" placeholder="0.00">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Specifications</label>
+                            <textarea class="form-control" name="specifications${lineItemCounter}" rows="2" 
+                                      placeholder="Technical specifications, requirements, conditions..."></textarea>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            container.insertAdjacentHTML('beforeend', lineItemHtml);
+        }
+
+        function removeLineItem(itemId) {
+            const item = document.getElementById(`lineItem${itemId}`);
+            if (item) {
+                item.remove();
+                
+                // Show no items message if no items left
+                const container = document.getElementById('lineItemsContainer');
+                if (container.children.length === 0) {
+                    document.getElementById('noItemsMessage').style.display = 'block';
+                }
+            }
+        }
+
+        // Form submission
+        document.getElementById('auctionForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            if (!validateCurrentStep()) {
+                return;
+            }
+            
+            // Collect line items
+            const lineItems = [];
+            const container = document.getElementById('lineItemsContainer');
+            
+            if (container.children.length === 0) {
+                showAlert('Please add at least one line item to the auction.', 'danger');
+                return;
+            }
+            
+            // Collect line item data
+            for (let i = 1; i <= lineItemCounter; i++) {
+                const itemElement = document.getElementById(`lineItem${i}`);
+                if (!itemElement) continue;
+                
+                const itemNumber = document.querySelector(`[name="itemNumber${i}"]`)?.value || '';
+                const itemName = document.querySelector(`[name="itemName${i}"]`)?.value || '';
+                const description = document.querySelector(`[name="itemDescription${i}"]`)?.value || '';
+                const quantity = parseInt(document.querySelector(`[name="quantity${i}"]`)?.value || 1);
+                const unit = document.querySelector(`[name="unit${i}"]`)?.value || 'pieces';
+                const startingPrice = parseFloat(document.querySelector(`[name="startingPrice${i}"]`)?.value || 0);
+                const estimatedPrice = parseFloat(document.querySelector(`[name="estimatedPrice${i}"]`)?.value || 0);
+                const specifications = document.querySelector(`[name="specifications${i}"]`)?.value || '';
+                
+                if (!itemName) {
+                    showAlert(`Please enter a name for Item #${i}.`, 'danger');
+                    return;
+                }
+                
+                lineItems.push({
+                    itemNumber: itemNumber,
+                    description: itemName + (description ? ' - ' + description : ''),
+                    quantity: quantity,
+                    unit: unit,
+                    estimatedPrice: estimatedPrice || startingPrice,
+                    specifications: specifications
+                });
+            }
+            
+            // Prepare auction data
+            const auctionData = {
+                title: document.getElementById('title').value,
+                description: document.getElementById('description').value,
+                eventType: 'AUCTION',
+                startDate: document.getElementById('startDate').value,
+                endDate: document.getElementById('endDate').value,
+                currency: document.getElementById('currency').value || 'USD',
+                minimumBidIncrement: parseFloat(document.getElementById('minimumBidIncrement').value || 1.00),
+                termsAndConditions: document.getElementById('termsAndConditions').value
+            };
+              try {
+                // Create the auction
+                const response = await fetch('/api/admin/auctions', {
+                    method: 'POST',
+                    headers: getAuthHeader(),
+                    body: JSON.stringify(auctionData)
+                });
+                
+                if (response.ok) {
+                    const createdEvent = await response.json();
+                    
+                    // Add line items
+                    for (const lineItem of lineItems) {
+                        await fetch(`/api/admin/events/${createdEvent.id}/line-items`, {
+                            method: 'POST',
+                            headers: getAuthHeader(),
+                            body: JSON.stringify(lineItem)
+                        });
+                    }
+                    
+                    showAlert('Auction created successfully!', 'success');
+                    
+                    setTimeout(() => {
+                        window.location.href = '/api/admin';
+                    }, 2000);
+                    
+                } else {
+                    const errorText = await response.text();
+                    showAlert('Failed to create auction: ' + errorText, 'danger');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert('An error occurred while creating the auction.', 'danger');
+            }
+        });
+
+        // Set minimum dates to current time
+        document.addEventListener('DOMContentLoaded', function() {
+            const now = new Date();
+            const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+            
+            // Format to datetime-local format
+            const formatDateTime = (date) => {
+                return date.toISOString().slice(0, 16);
+            };
+            
+            document.getElementById('startDate').min = formatDateTime(now);
+            document.getElementById('endDate').min = formatDateTime(tomorrow);
+            
+            // Set default start time to tomorrow
+            document.getElementById('startDate').value = formatDateTime(tomorrow);
+            
+            // Set default end time to day after tomorrow
+            const dayAfter = new Date(tomorrow.getTime() + 24 * 60 * 60 * 1000);
+            document.getElementById('endDate').value = formatDateTime(dayAfter);
+        });
+    </script>
+</body>
+</html>
