@@ -8,9 +8,9 @@
         <version>3.5.0</version>
         <relativePath/>
     </parent>
-    <groupId>com.procure</groupId>
+    <groupId>zama.learning.procureai</groupId>
     <artifactId>procure-ai-api</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>1.0.0</version>
     <name>procure-ai-api</name>
     <description>Procurement Application with RFQ, Auctions, and Vendor Management</description>
     
